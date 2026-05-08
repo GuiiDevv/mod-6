@@ -1,11 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import HomeScreen from './HomeScreen';
 
-export default function NewTask() {
+export default function NewTask({ navigation }: any) {
+  const [titulo, setTitulo] = useState('');
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tela de nova tarefa</Text>
-      <Text>Aqui vamos criar o formulário na próxima aula.</Text>
+      <Text style={styles.title}>Nova Tarefa</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Digite o título da tarefa"
+        value={titulo}
+        onChangeText={setTitulo}
+      />
+
+      <Button title="Salvar tarefa" 
+      onPress={() => navigation.navigate('Home')}
+      />
     </View>
   );
 }
@@ -20,7 +33,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 12,
+    marginBottom: 16,
+    borderRadius: 8,
   },
 });
