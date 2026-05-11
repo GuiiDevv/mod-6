@@ -14,12 +14,12 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: 'TaskApp' }}
+          options={{ title: 'TaskApp', headerLeft: () => null, headerBackVisible: false }} // remove o botao de voltar do header no home. Força tambem pra ele n aparecer;
         />
         <Stack.Screen
           name="NewTask"
           component={NewTask}
-          options={{ title: 'Nova Tarefa' }}
+          options={{ title: 'Nova Tarefa'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

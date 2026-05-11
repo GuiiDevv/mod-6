@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Text, View, StyleSheet, Button } from 'react-native';
+import { FlatList, Text, View, StyleSheet, Button, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TaskItem from '../components/TaskItem';
 
@@ -40,6 +40,21 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
+  const apagarTarefa = (id: string) => {
+      Alert.alert(
+        'Atenção',
+        'Deseja realmente apagar esta tarefa?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Apagar', style: 'destructive', onPress: () => {
+            const tarefasAtualizadas = tarefas.filter(tarefa => tarefa.id !== id);
+            setTarefas(tarefasAtualizadas);
+          } },
+        ]
+      );
+  }
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Minhas tarefas</Text>
@@ -51,7 +66,7 @@ export default function HomeScreen({ navigation }: any) {
 
       <FlatList
         data={tarefas}
-        renderItem={({ item }) => <TaskItem titulo={item.titulo} />}
+        renderItem={({ item }) => <TaskItem titulo={item.titulo} onDelete={() => apagarTarefa(item.id)} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
