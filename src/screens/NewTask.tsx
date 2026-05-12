@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react'; 
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = '@taskapp:tarefas';
 
-export default function NewTask({ navigation }: any) {
+export default function NewTask({ route, navigation }: any) {
+  const tarefa = route.params?.tarefa;
+
   const [titulo, setTitulo] = useState('');
 
-  const salvarNovaTarefa = async () => {
+  useEffect(() => {
+    if (tarefa) {
+      setTitulo(tarefa.titulo);
+    }
+  }, [tarefa]);
+
+  const salvarTarefa = async () => {
     if (titulo.trim() === '') {
       Alert.alert('Atenção', 'Digite o título da tarefa.');
       return;
@@ -18,12 +26,23 @@ export default function NewTask({ navigation }: any) {
 
       const tarefas = dadosSalvos ? JSON.parse(dadosSalvos) : [];
 
-      const novaTarefa = {
-        id: Date.now().toString(),
-        titulo: titulo,
-      };
+      let tarefasAtualizadas = [];
 
-      const tarefasAtualizadas = [...tarefas, novaTarefa];
+      if (tarefa) {
+        tarefasAtualizadas = tarefas.map((item: any) =>
+          item.id === tarefa.id
+            ? { ...item, titulo: titulo }
+            : item
+        );
+      } else {
+        const novaTarefa = {
+          id: Date.now().toString(),
+          titulo: titulo,
+          concluida: false,
+        };
+
+        tarefasAtualizadas = [...tarefas, novaTarefa];
+      }
 
       await AsyncStorage.setItem(
         STORAGE_KEY,
@@ -32,32 +51,30 @@ export default function NewTask({ navigation }: any) {
 
       setTitulo('');
 
-      navigation.navigate('Home');
+      navigation.goBack();
     } catch (error) {
-      console.log('Erro ao salvar nova tarefa:', error);
+      console.log('Erro ao salvar tarefa:', error);
       Alert.alert('Erro', 'Não foi possível salvar a tarefa.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.contentBox}>
-        <Text style={styles.title}>Nova Tarefa</Text>
+      <Text style={styles.title}>
+        {tarefa ? 'Editar Tarefa' : 'Nova Tarefa'}
+      </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Digite o título da tarefa"
-          value={titulo}
-          onChangeText={setTitulo}
-        />
+      <TextInput
+        style={styles.input}
+        placeholder="Digite o título da tarefa"
+        value={titulo}
+        onChangeText={setTitulo}
+      />
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Salvar tarefa"
-            onPress={salvarNovaTarefa}
-          />
-        </View>
-      </View>
+      <Button
+        title={tarefa ? 'Salvar alterações' : 'Salvar tarefa'}
+        onPress={salvarTarefa}
+      />
     </View>
   );
 }
@@ -69,35 +86,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
   },
-  contentBox: {
-    borderRadius: 10,
-    padding: 20,
-    backgroundColor: '#f9f9f9',
-    elevation: 2,
-    width: '80%',
-    alignSelf: 'center',
-    height: '35%',
-    justifyContent: 'center',
-  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 16,
     textAlign: 'center',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 11,
-    marginBottom: 20,
+    padding: 12,
+    marginBottom: 16,
     borderRadius: 8,
-    width: '80%',
-    alignSelf: 'center',
-    backgroundColor: '#fff',  
-    textAlign: 'center',
   },
-  buttonContainer: {
-    width: '50%',
-    alignSelf: 'center',
-  }
 });

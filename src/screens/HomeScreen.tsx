@@ -1,24 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Text, View, StyleSheet, Button, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { FlatList, Text, View, StyleSheet, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import TaskItem from '../components/TaskItem';
 
 const STORAGE_KEY = '@taskapp:tarefas';
 
+export type Tarefa = {
+  id: string;
+  titulo: string;
+  concluida: boolean;
+};
+
 export default function HomeScreen({ navigation }: any) {
-  const [tarefas, setTarefas] = useState([
-    { id: '1', titulo: 'Estudar React Native' },
-    { id: '2', titulo: 'Criar primeira tela' },
-    { id: '3', titulo: 'Montar lista de tarefas' },
-  ]);
-
-  useEffect(() => {
-    carregarTarefas();
-  }, []);
-
-  useEffect(() => {
-    salvarTarefas();
-  }, [tarefas]);
+  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
 
   const carregarTarefas = async () => {
     try {
@@ -26,34 +21,54 @@ export default function HomeScreen({ navigation }: any) {
 
       if (dadosSalvos) {
         setTarefas(JSON.parse(dadosSalvos));
+      } else {
+        const listaInicial: Tarefa[] = [
+          { id: '1', titulo: 'Estudar React Native', concluida: false },
+          { id: '2', titulo: 'Criar primeira tela', concluida: false },
+          { id: '3', titulo: 'Montar lista de tarefas', concluida: false },
+        ];
+
+        setTarefas(listaInicial);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(listaInicial));
       }
     } catch (error) {
       console.log('Erro ao carregar tarefas:', error);
     }
   };
 
-  const salvarTarefas = async () => {
+  const salvarTarefas = async (novaLista: Tarefa[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tarefas));
+      setTarefas(novaLista);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(novaLista));
     } catch (error) {
       console.log('Erro ao salvar tarefas:', error);
     }
   };
 
-  const apagarTarefa = (id: string) => {
-      Alert.alert(
-        'Atenção',
-        'Deseja realmente apagar esta tarefa?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Apagar', style: 'destructive', onPress: () => {
-            const tarefasAtualizadas = tarefas.filter(tarefa => tarefa.id !== id);
-            setTarefas(tarefasAtualizadas);
-          } },
-        ]
-      );
-  }
+  const concluirTarefa = async (id: string) => {
+    const novaLista = tarefas.map((tarefa) =>
+      tarefa.id === id
+        ? { ...tarefa, concluida: !tarefa.concluida }
+        : tarefa
+    );
 
+    await salvarTarefas(novaLista);
+  };
+
+  const excluirTarefa = async (id: string) => {
+    const novaLista = tarefas.filter((tarefa) => tarefa.id !== id);
+    await salvarTarefas(novaLista);
+  };
+
+  const editarTarefa = (tarefa: Tarefa) => {
+    navigation.navigate('NewTask', { tarefa });
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarTarefas();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -66,7 +81,15 @@ export default function HomeScreen({ navigation }: any) {
 
       <FlatList
         data={tarefas}
-        renderItem={({ item }) => <TaskItem titulo={item.titulo} onDelete={() => apagarTarefa(item.id)} />}
+        renderItem={({ item }) => (
+          <TaskItem
+            titulo={item.titulo}
+            concluida={item.concluida}
+            onConcluir={() => concluirTarefa(item.id)}
+            onExcluir={() => excluirTarefa(item.id)}
+            onEditar={() => editarTarefa(item)}
+          />
+        )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
