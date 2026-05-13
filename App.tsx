@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from './src/screens/HomeScreen';
-import NewTask from './src/screens/NewTask';
+import EditTask from './src/screens/EditTask';
 
 const Stack = createNativeStackNavigator();
 
@@ -14,12 +14,17 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: 'TaskApp', headerLeft: () => null, headerBackVisible: false }} // remove o botao de voltar do header no home. Força tambem pra ele n aparecer;
+          options={{
+            title: 'TaskApp',
+            headerLeft: () => null,
+            headerBackVisible: false,
+            headerStyle: { backgroundColor: '#dfdada' },
+          }} // remove o botao de voltar do header no home. Força tambem pra ele n aparecer;
         />
         <Stack.Screen
-          name="NewTask"
-          component={NewTask}
-          options={{ title: 'Nova Tarefa'}}
+          name="EditTask"
+          component={EditTask}
+          options={{ title: 'Editar tarefa' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
